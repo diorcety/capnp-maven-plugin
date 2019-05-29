@@ -105,8 +105,8 @@ public class CapnpCompiler
         private final File outputDirectory;
         private final File schemaDirectory;
         private final File workDirectory;
-        private final File capnpFile;
-        private final File capnpcJavaFile;
+        private final String capnpExecutable;
+        private final String capnpcJavaExecutable;
         private final File capnpJavaSchemaFile;
         private List<File> importDirectories;
 
@@ -116,8 +116,8 @@ public class CapnpCompiler
                 File outputDirectory,
                 File schemaDirectory,
                 File workDirectory,
-                File capnpFile,
-                File capnpcJavaFile,
+                String capnpExecutable,
+                String capnpcJavaExecutable,
                 File capnpJavaSchemaFile,
                 List<File> importDirectories )
             throws MojoExecutionException, MojoFailureException
@@ -125,8 +125,8 @@ public class CapnpCompiler
             this.outputDirectory = outputDirectory;
             this.schemaDirectory = schemaDirectory;
             this.workDirectory = workDirectory;
-            this.capnpFile = capnpFile;
-            this.capnpcJavaFile = capnpcJavaFile;
+            this.capnpExecutable = capnpExecutable;
+            this.capnpcJavaExecutable = capnpcJavaExecutable;
             this.capnpJavaSchemaFile = capnpJavaSchemaFile;
             this.importDirectories = importDirectories;
 
@@ -165,10 +165,10 @@ public class CapnpCompiler
         private void setBase()
             throws IOException
         {
-            base.add( capnpFile.getAbsolutePath() );
+            base.add( capnpExecutable );
             base.add( "compile" );
             base.add( "--verbose" );
-            base.add( "-o" + capnpcJavaFile.getAbsolutePath() + ":" + outputDirectory.getAbsolutePath() );
+            base.add( "-o" + capnpcJavaExecutable + ":" + outputDirectory.getAbsolutePath() );
 
             for ( File importDirectory : importDirectories )
             {
@@ -182,8 +182,8 @@ public class CapnpCompiler
         private File outputDirectory;
         private File schemaDirectory;
         private File workDirectory;
-        private File capnpFile;
-        private File capnpcJavaFile;
+        private String capnpExecutable;
+        private String capnpcJavaExecutable;
         private File capnpJavaSchemaFile;
         private final List<File> importDirectories = new ArrayList<>();
         private final List<String> schemas = new ArrayList<>();
@@ -199,8 +199,8 @@ public class CapnpCompiler
                         outputDirectory,
                         schemaDirectory,
                         workDirectory,
-                        capnpFile,
-                        capnpcJavaFile,
+                        capnpExecutable,
+                        capnpcJavaExecutable,
                         capnpJavaSchemaFile,
                         importDirectories );
 
@@ -228,16 +228,16 @@ public class CapnpCompiler
             return this;
         }
 
-        public Builder setCapnpFile( File capnpFile )
+        public Builder setCapnpExecutable(String capnpExecutable)
         {
-            this.capnpFile = capnpFile;
+            this.capnpExecutable = capnpExecutable;
 
             return this;
         }
 
-        public Builder setCapnpcJavaFile( File capnpcJavaFile )
+        public Builder setCapnpcJavaExecutable(String capnpcJavaExecutable)
         {
-            this.capnpcJavaFile = capnpcJavaFile;
+            this.capnpcJavaExecutable = capnpcJavaExecutable;
 
             return this;
         }
@@ -291,8 +291,8 @@ public class CapnpCompiler
             validate( schemaDirectory, "Schema base directory" );
             validate( workDirectory, "Working directory" );
 
-            validate( capnpFile, "capnpn file" );
-            validate( capnpcJavaFile, "capnpnc java file" );
+            validate( capnpExecutable, "capnpn file" );
+            validate( capnpcJavaExecutable, "capnpnc java file" );
             validate( capnpJavaSchemaFile, "capnpn java schema file" );
 
             for ( File importDirectory : importDirectories )
@@ -308,6 +308,15 @@ public class CapnpCompiler
 
         private void validate( File file, String name )
             throws MojoFailureException
+        {
+            if ( file == null )
+            {
+                throw new MojoFailureException( name + " is mandatory." );
+            }
+        }
+
+        private void validate( String file, String name )
+                throws MojoFailureException
         {
             if ( file == null )
             {

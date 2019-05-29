@@ -171,6 +171,9 @@ public class CapnProtoMojo
     @Parameter( defaultValue = "true", required = true )
     private boolean handleNativeDependency;
 
+    @Parameter()
+    private NativeInfo nativeInfo;
+
     private final NativesManager nativesManager = new NativesManager();
 
     @Override
@@ -196,16 +199,22 @@ public class CapnProtoMojo
 
         workDirectory.mkdirs();
 
-        NativesInfo currentNativesInfo = nativesManager.getNativesInfoForCurrentPlatform();
+        if (nativeInfo == null) {
+            NativesInfo currentNativesInfo = nativesManager.getNativesInfoForCurrentPlatform();
+            nativeInfo = new NativeInfo();
+            nativeInfo.setCapnp( copyResource( currentNativesInfo.getCapnpUrl(), workDirectory ).getAbsolutePath() );
+            nativeInfo.setCapnpcJava( copyResource( currentNativesInfo.getCapnpcJavaUrl(), workDirectory ).getAbsolutePath() );
+            nativeInfo.setCapnpJavaSchema( copyResource( currentNativesInfo.getCapnpJavaSchemaUrl(), workDirectory ) );
+        }
 
         CapnpCompiler compiler =
             CapnpCompiler.builder()
                 .setOutputDirectory( outputDirectory )
                 .setSchemaDirectory( schemaDirectory )
                 .setWorkDirectory( workDirectory )
-                .setCapnpFile( copyResource( currentNativesInfo.getCapnpUrl(), workDirectory ) )
-                .setCapnpcJavaFile( copyResource( currentNativesInfo.getCapnpcJavaUrl(), workDirectory ) )
-                .setCapnpJavaSchemaFile( copyResource( currentNativesInfo.getCapnpJavaSchemaUrl(), workDirectory ) )
+                .setCapnpExecutable( nativeInfo.getCapnp() )
+                .setCapnpcJavaExecutable( nativeInfo.getCapnpcJava() )
+                .setCapnpJavaSchemaFile( nativeInfo.getCapnpJavaSchema() )
                 .addSchemas( getSchemas() )
                 .addImportDirectories( getImportDirectories() )
                 .setVerbose( verbose )
@@ -375,6 +384,40 @@ public class CapnProtoMojo
         catch ( Exception e )
         {
             throw new MojoExecutionException( "Unable to copy natives to work directory: " + workDirectory, e );
+        }
+    }
+
+    public static class NativeInfo {
+        String capnp;
+        String capnpcJava;
+        File capnpJavaSchema;
+
+
+        public NativeInfo() {
+        }
+
+        public String getCapnp() {
+            return capnp;
+        }
+
+        public void setCapnp(String capnp) {
+            this.capnp = capnp;
+        }
+
+        public String getCapnpcJava() {
+            return capnpcJava;
+        }
+
+        public void setCapnpcJava(String capnpcJava) {
+            this.capnpcJava = capnpcJava;
+        }
+
+        public File getCapnpJavaSchema() {
+            return capnpJavaSchema;
+        }
+
+        public void setCapnpJavaSchema(File capnpJavaSchema) {
+            this.capnpJavaSchema = capnpJavaSchema;
         }
     }
 }
