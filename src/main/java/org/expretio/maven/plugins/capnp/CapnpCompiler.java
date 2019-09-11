@@ -73,6 +73,7 @@ public class CapnpCompiler {
                     new ProcessBuilder(command.get(schema))
                             .directory(command.workDirectory);
 
+
             Process process = processBuilder.start();
 
             String packageStr = null;
@@ -153,6 +154,16 @@ public class CapnpCompiler {
             return fullCommand;
         }
 
+        private static File findExecutableOnPath(String name) {
+            for (String dirname : System.getenv("PATH").split(File.pathSeparator)) {
+                File file = new File(dirname, name);
+                if (file.isFile() && file.canExecute()) {
+                    return file;
+                }
+            }
+            throw new AssertionError("should have found the executable");
+        }
+
         private void initialize()
                 throws MojoExecutionException {
             outputDirectory.mkdirs();
@@ -161,7 +172,10 @@ public class CapnpCompiler {
             try {
                 FileUtils.copyDirectoryStructure(schemaDirectory, workDirectory);
 
-                importDirectories.add(capnpJavaSchemaFile.getParentFile());
+                importDirectories.add(new File(findExecutableOnPath(capnpExecutable).getParentFile(), "../include"));
+                if (capnpJavaSchemaFile != null) {
+                    importDirectories.add(capnpJavaSchemaFile.getParentFile());
+                }
                 importDirectories.add(schemaDirectory);
 
                 setBase();
@@ -285,7 +299,6 @@ public class CapnpCompiler {
 
             validate(capnpExecutable, "capnpn file");
             validate(capnpcJavaExecutable, "capnpnc java file");
-            validate(capnpJavaSchemaFile, "capnpn java schema file");
 
             for (File importDirectory : importDirectories) {
                 validate(importDirectory, "Import directory");
