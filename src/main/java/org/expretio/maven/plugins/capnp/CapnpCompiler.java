@@ -189,7 +189,7 @@ public class CapnpCompiler {
             base.add(capnpExecutable);
             base.add("compile");
             base.add("--verbose");
-            base.add("-o" + capnpcJavaExecutable + ":" + outputDirectory.getAbsolutePath());
+            base.add("-o" + capnpcJavaExecutable + File.pathSeparator + outputDirectory.getAbsolutePath());
 
             for (File importDirectory : importDirectories) {
                 base.add("-I" + importDirectory.getAbsolutePath());
